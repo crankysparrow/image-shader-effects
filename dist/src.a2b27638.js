@@ -36491,12 +36491,16 @@ if (typeof window !== 'undefined') {
 }
 },{}],"src/shaders/1-vert.glsl":[function(require,module,exports) {
 module.exports = "#define GLSLIFY 1\nvarying vec2 v_uv;\n\nvoid main() {\n    v_uv = uv;\n\n    gl_Position = projectionMatrix * modelViewMatrix * \n\t\tvec4(position, 1.0);\n}";
+},{}],"src/shaders/1-frag.glsl":[function(require,module,exports) {
+module.exports = "#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform float u_mouse;\n\nvarying vec2 v_uv;\n\nvoid main() {\n    vec2 res = u_res * PR;\n    vec2 st = gl_FragCoord.xy / res.xy - vec2(0.5);\n    st.y *= u_res.y / u_res.x;\n\n    vec4 image = texture2D(u_image, v_uv);\n    image.rbg = 1.0 - image.rgb;\n    gl_FragColor = image;\n}";
 },{}],"src/index.js":[function(require,module,exports) {
 "use strict";
 
 var THREE = _interopRequireWildcard(require("three"));
 
 var _vert = _interopRequireDefault(require("./shaders/1-vert.glsl"));
+
+var _frag = _interopRequireDefault(require("./shaders/1-frag.glsl"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -36506,13 +36510,6 @@ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && 
 
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 // import * as dat from 'dat.gui'
-// const vertexShader = `varying vec2 v_uv;
-// void main() {
-//     v_uv = uv;
-//     gl_Position = projectionMatrix * modelViewMatrix *
-// 		vec4(position, 1.0);
-// }`;
-var fragmentShader = "\n uniform vec2 u_res;\n \n uniform sampler2D u_image;\n \n uniform float u_time;\n \n varying vec2 v_uv;\n \n void main() {\n   vec2 res = u_res * PR;\n   vec2 st = gl_FragCoord.xy / res.xy - vec2(0.5);\n   st.y *= u_res.y / u_res.x;\n \n   vec4 image = texture2D(u_image, v_uv);\n   gl_FragColor = image;\n }\n ";
 var scene = new THREE.Scene();
 var loader = new THREE.TextureLoader();
 var renderer = new THREE.WebGLRenderer({}); // const controls = new OrbitControls(camera, renderer.domElement);
@@ -36521,27 +36518,34 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 var light = new THREE.AmbientLight(0xffffff); // soft white light
 
-scene.add(light);
-var perspective = 800;
-var fov = 180 * (2 * Math.atan(window.innerHeight / 2 / perspective)) / Math.PI;
-var camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
-camera.position.set(0, 0, 10);
+scene.add(light); // let perspective = 800
+// let fov = (180 * (2 * Math.atan(window.innerHeight / 2 / perspective))) / Math.PI
+// let camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
+// camera.position.set(0, 0, 20)
+
+var orthoCamera = makeOrthoCamera(window.innerWidth, window.innerHeight);
+window.orthoCamera = orthoCamera;
+var uMouse = new THREE.Vector2();
 var theimage = document.querySelector('#theimage');
 var image = loader.load(theimage.src, function () {
-  var mesh = createMesh(image); // imageEl.style.opacity = '0'
-  // imageEl.style.width = '500px'
-
+  var mesh = createMesh(image, uMouse);
   var rect = theimage.getBoundingClientRect();
   var width = rect.width;
   var height = rect.height;
   theimage.remove();
-  mesh.scale.set(width / 50, height / 50, 1);
+  mesh.scale.set(width, height, 1);
   scene.add(mesh);
-}); // render loop
+});
+
+document.onmousemove = function (e) {
+  uMouse.x = e.pageX / window.innerWidth;
+  uMouse.y = e.pageY / window.innerHeight;
+}; // render loop
+
 
 var onAnimationFrameHandler = function onAnimationFrameHandler(timeStamp) {
   // controls.update();
-  renderer.render(scene, camera);
+  renderer.render(scene, orthoCamera);
   window.requestAnimationFrame(onAnimationFrameHandler);
 };
 
@@ -36552,8 +36556,13 @@ var windowResizeHanlder = function windowResizeHanlder() {
       innerHeight = _window.innerHeight,
       innerWidth = _window.innerWidth;
   renderer.setSize(innerWidth, innerHeight);
-  camera.aspect = innerWidth / innerHeight;
-  camera.updateProjectionMatrix();
+
+  if (orthoCamera) {
+    updateOrthoCamera(orthoCamera, innerWidth, innerHeight);
+  } else {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+  }
 };
 
 windowResizeHanlder();
@@ -36587,7 +36596,7 @@ function randomImg() {
   return mesh_plane;
 }
 
-function createMesh() {
+function createMesh(image, uMouse) {
   var uniforms = {
     u_image: {
       type: 't',
@@ -36598,13 +36607,17 @@ function createMesh() {
     },
     u_res: {
       value: new THREE.Vector2(window.innerWidth, window.innerHeight)
+    },
+    u_mouse: {
+      type: 'v2',
+      value: uMouse
     }
   };
   var geometry = new THREE.PlaneBufferGeometry(1, 1, 1, 1);
   var material = new THREE.ShaderMaterial({
     uniforms: uniforms,
     vertexShader: _vert.default,
-    fragmentShader: fragmentShader,
+    fragmentShader: _frag.default,
     defines: {
       PR: window.devicePixelRatio.toFixed(1)
     }
@@ -36613,10 +36626,18 @@ function createMesh() {
   return mesh;
 }
 
-function orthoCamera() {
+function makeOrthoCamera(width, height) {
   var camera = new THREE.OrthographicCamera(width / -2, width / 2, height / 2, height / -2, 1, 10);
   camera.position.set(0, 0, 1);
   return camera;
+}
+
+function updateOrthoCamera(camera, width, height) {
+  camera.left = width / -2;
+  camera.right = width / 2;
+  camera.top = height / 2;
+  camera.bottom = height / -2;
+  camera.updateProjectionMatrix();
 }
 
 function cameraGUI() {
@@ -36641,7 +36662,7 @@ function cameraGUI() {
   });
   camGUI.open();
 }
-},{"three":"node_modules/three/build/three.module.js","./shaders/1-vert.glsl":"src/shaders/1-vert.glsl"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"three":"node_modules/three/build/three.module.js","./shaders/1-vert.glsl":"src/shaders/1-vert.glsl","./shaders/1-frag.glsl":"src/shaders/1-frag.glsl"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -36669,7 +36690,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58821" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53422" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
