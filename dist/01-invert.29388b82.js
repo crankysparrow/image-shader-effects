@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"node_modules/three/build/three.module.js":[function(require,module,exports) {
+})({"../node_modules/three/build/three.module.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -36489,11 +36489,11 @@ if (typeof window !== 'undefined') {
     window.__THREE__ = REVISION;
   }
 }
-},{}],"vert.glsl":[function(require,module,exports) {
+},{}],"01-invert/vert.glsl":[function(require,module,exports) {
 module.exports = "#define GLSLIFY 1\nvarying vec2 v_uv;\n\nvoid main() {\n    v_uv = uv;\n\n    gl_Position = projectionMatrix * modelViewMatrix * \n\t\tvec4(position, 1.0);\n}";
-},{}],"frag.glsl":[function(require,module,exports) {
+},{}],"01-invert/frag.glsl":[function(require,module,exports) {
 module.exports = "#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform float u_mouse;\n\nvarying vec2 v_uv;\n\nvoid main() {\n    vec2 res = u_res * PR;\n    vec2 st = gl_FragCoord.xy / res.xy - vec2(0.5);\n    st.y *= u_res.y / u_res.x;\n\n    vec4 image = texture2D(u_image, v_uv);\n    image.rbg = 1.0 - image.rgb;\n    gl_FragColor = image;\n}";
-},{}],"index.js":[function(require,module,exports) {
+},{}],"01-invert/index.js":[function(require,module,exports) {
 "use strict";
 
 var THREE = _interopRequireWildcard(require("three"));
@@ -36662,7 +36662,7 @@ function cameraGUI() {
   });
   camGUI.open();
 }
-},{"three":"node_modules/three/build/three.module.js","./vert.glsl":"vert.glsl","./frag.glsl":"frag.glsl"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"three":"../node_modules/three/build/three.module.js","./vert.glsl":"01-invert/vert.glsl","./frag.glsl":"01-invert/frag.glsl"}],"../node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -36690,7 +36690,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "63688" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50105" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -36866,5 +36866,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","index.js"], null)
+},{}]},{},["../node_modules/parcel-bundler/src/builtins/hmr-runtime.js","01-invert/index.js"], null)
 //# sourceMappingURL=/01-invert.29388b82.js.map
