@@ -140,12 +140,12 @@
       this[globalName] = mainExports;
     }
   }
-})({"kyUb2":[function(require,module,exports) {
+})({"97SvP":[function(require,module,exports) {
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "4a236f9275d0a351";
-module.bundle.HMR_BUNDLE_ID = "51b20cfd86daa5a2";
+module.bundle.HMR_BUNDLE_ID = "146b7ef54db6fb0d";
 "use strict";
 function _createForOfIteratorHelper(o, allowArrayLike) {
     var it;
@@ -458,7 +458,7 @@ function hmrAcceptRun(bundle, id) {
     acceptedAssets[id] = true;
 }
 
-},{}],"aBOOG":[function(require,module,exports) {
+},{}],"aFZ6Y":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -561,7 +561,7 @@ function updateOrthoCamera(camera, width, height) {
     camera.updateProjectionMatrix();
 }
 
-},{"three":"64dkv","./vert.glsl":"iFzaH","./frag.glsl":"7ff7x","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"64dkv":[function(require,module,exports) {
+},{"three":"64dkv","./vert.glsl":"k2p7c","./frag.glsl":"E6FhA","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"64dkv":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ACESFilmicToneMapping", ()=>ACESFilmicToneMapping
@@ -30494,12 +30494,12 @@ exports.export = function(dest, destName, get) {
     });
 };
 
-},{}],"iFzaH":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\nvarying vec2 v_uv;\nuniform vec2 u_mouse;\nuniform vec2 u_res;\n\nvoid main() {\n    v_uv = uv;\n\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}";
+},{}],"k2p7c":[function(require,module,exports) {
+module.exports = "precision mediump float;\n#define GLSLIFY 1\nvarying vec2 v_uv;\nuniform vec2 u_mouse;\nuniform vec2 u_res;\n\nvoid main() {\n    v_uv = uv;\n    // gl_Position = vec4( position, 1.0);\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}";
 
-},{}],"7ff7x":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nvarying vec2 v_uv;\n\nvoid main() {\n\n    vec2 resolution = u_res * PR;\n\n    vec2 uv = v_uv;\n\n    vec2 st = gl_FragCoord.xy / resolution.xy - vec2(.5);\n    // vec2 st = gl_FragCoord.xy / resolution.xy;\n    st.y *= resolution.y / resolution.x;\n\n    vec2 mouse = vec2((u_mouse.x / u_res.x) * 2. - 1.,-(u_mouse.y / u_res.y) * 2. + 1.) * 0.5;\n    mouse.y *= resolution.y / resolution.x;\n\n    float pct = distance(st, mouse);\n\n    vec4 image = texture2D(u_image, uv);\n\n    gl_FragColor = image * (1.0 - smoothstep(0.1, 0.2, pct));\n    // gl_FragColor = image;\n}";
+},{}],"E6FhA":[function(require,module,exports) {
+module.exports = "precision mediump float;\n#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nvarying vec2 v_uv;\n\nvoid main() {\n\n    vec2 resolution = u_res * PR;\n    vec2 uv = v_uv;\n    vec2 pixelSize = vec2(1.0) / resolution;\n\n    vec2 st = gl_FragCoord.xy / resolution.xy - vec2(.5);\n    st.y *= resolution.y / resolution.x;\n\n    // vec2 mouse = vec2((u_mouse.x / u_res.x), (u_mouse.y / u_res.y));\n    vec2 mouse = vec2((u_mouse.x / u_res.x) * 2. - 1.,-(u_mouse.y / u_res.y) * 2. + 1.) * 0.5;\n    mouse.y *= resolution.y / resolution.x;\n\n    // float pct = 1.0 - distance(st, mouse);\n    float pct = distance(st, mouse);\n    // float pctadjust = 1.0 - smoothstep(0.1, 0.2, pct);\n    // float pctadjust = step(pct, 0.1);\n    float pctadjust = smoothstep(0.11, 0.1, pct);\n    vec2 offset = pixelSize * 30.0 * pctadjust;\n\n    vec4 rTex = texture2D(u_image, uv - offset);\n    vec4 gTex = texture2D(u_image, uv);\n    vec4 bTex = texture2D(u_image, uv + offset);\n\n    vec4 color = vec4(rTex.r, gTex.g, bTex.b, 1.0);\n\n    gl_FragColor = color;\n\n}";
 
-},{}]},["kyUb2","aBOOG"], "aBOOG", "parcelRequireb594")
+},{}]},["97SvP","aFZ6Y"], "aFZ6Y", "parcelRequireb594")
 
-//# sourceMappingURL=index.86daa5a2.js.map
+//# sourceMappingURL=index.4db6fb0d.js.map
