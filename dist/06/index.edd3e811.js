@@ -470,8 +470,9 @@ var _vertGlslDefault = parcelHelpers.interopDefault(_vertGlsl);
 if (module.hot) module.hot.dispose(()=>{
     window.location.reload();
 });
-let width = window.innerWidth;
-let height = window.innerHeight;
+const size = 800;
+let width = size;
+let height = size;
 const loader = new _three.TextureLoader();
 const scene = new _three.Scene();
 const renderer = new _three.WebGLRenderer({
@@ -481,17 +482,25 @@ renderer.setSize(width, height);
 document.body.appendChild(renderer.domElement);
 const light = new _three.AmbientLight(16777215);
 scene.add(light);
-let tex1 = loader.load('https://picsum.photos/1024?random=1');
+let tex1 = loader.load(`https://picsum.photos/${size}?random=1`);
+let tex2 = loader.load(`https://picsum.photos/${size}?random=2`);
 let uniforms = {
     u_image: {
         type: 't',
         value: tex1
+    },
+    u_image2: {
+        type: 't',
+        value: tex2
     },
     u_time: {
         value: 0
     },
     u_res: {
         value: new _three.Vector2(width, height)
+    },
+    u_mouse: {
+        value: new _three.Vector2(0, 0)
     }
 };
 let geometry = new _three.PlaneBufferGeometry(1, 1, 1, 1);
@@ -510,16 +519,33 @@ let camera = new _three.OrthographicCamera(width / -2, width / 2, height / 2, he
 camera.position.set(0, 0, 1);
 renderer.render(scene, camera);
 let mouse = new _three.Vector2(0, 0);
+window.mouse = mouse;
+let rect = renderer.domElement.getBoundingClientRect();
+window.rect = rect;
 document.addEventListener('mousemove', (e)=>{
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
+    mouse.x = e.pageX - rect.left;
+    mouse.y = e.pageY - rect.top;
 });
 function animate() {
     mesh.material.uniforms.u_time.value += 1;
+    mesh.material.uniforms.u_mouse.value = mouse;
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
 }
 animate();
+const windowResizeHandler = ()=>{
+    rect = renderer.domElement.getBoundingClientRect();
+// const { innerWidth, innerHeight } = window
+// renderer.setSize(innerWidth, innerHeight)
+// camera.left = innerWidth / -2
+// camera.right = innerWidth / 2
+// camera.top = innerHeight / 2
+// camera.bottom = innerHeight / -2
+// mesh.material.uniforms.u_res.value = new THREE.Vector2(innerWidth, innerHeight)
+// mesh.scale.set(innerWidth, innerHeight, 1)
+// camera.updateProjectionMatrix()
+};
+window.addEventListener('resize', windowResizeHandler);
 
 },{"three":"64dkv","../basics/setup.js":"1HJmQ","./frag.glsl":"7xVs9","./vert.glsl":"c7CMc","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"64dkv":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -30961,7 +30987,7 @@ class RenderPass extends _passJs.Pass {
 }
 
 },{"three":"64dkv","../postprocessing/Pass.js":"g6Fr5","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"7xVs9":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\nuniform vec2 u_resolution;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nuniform sampler2D u_image;\n\nvarying vec2 v_uv;\n\nvoid main() {\n\n    vec2 res = u_resolution * PR;\n    vec2 st = gl_FragCoord.xy / res.xy - vec2(0.5);\n    st.y *= u_resolution.y / u_resolution.x;\n\n    vec4 image = texture2D(u_image, v_uv);\n\n    gl_FragColor = image;\n\n}";
+module.exports = "precision mediump float;\n#define GLSLIFY 1\nuniform vec2 u_res;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nuniform sampler2D u_image;\nuniform sampler2D u_image2;\n\nvarying vec2 v_uv;\n\nvoid main() {\n\n    vec2 res = u_res * PR;\n    vec2 st = gl_FragCoord.xy / res.xy - vec2(0.5);\n    st.y *= u_res.y / u_res.x;\n\n    vec2 mouse = vec2(u_mouse.x / u_res.x, 1.0 - ( u_mouse.y / u_res.y ));\n    mouse = mouse - vec2(0.5);\n    mouse.y *= u_res.y / u_res.x;\n\n    float pct = smoothstep(0.3, 0.15, distance(st, mouse));\n\n    vec4 image = texture2D(u_image, v_uv);\n    vec4 image2 = texture2D(u_image2, v_uv);\n\n    gl_FragColor = mix(image, image2, pct);\n\n}";
 
 },{}],"c7CMc":[function(require,module,exports) {
 module.exports = "precision mediump float;\n#define GLSLIFY 1\nvarying vec2 v_uv;\nuniform vec2 u_mouse;\nuniform vec2 u_res;\n\nvoid main() {\n    v_uv = uv;\n\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}";
