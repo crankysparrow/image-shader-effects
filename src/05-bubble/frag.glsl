@@ -27,12 +27,8 @@ void main() {
     mouse += adjust;
     mouse.y *= u_res.y / u_res.x;
 
-    vec2 dist = st - mouse;
-    // float pct = smoothstep(0.05, 0.001, dot(dist, dist) * 5.0);
 
     float pct = smoothstep(0.2, 0.001, distance(st, mouse));
-
-
     float distort = pct * 0.01;
 
     gl_FragColor = texture2D(tDiffuse, uv + vec2(distort, distort));
