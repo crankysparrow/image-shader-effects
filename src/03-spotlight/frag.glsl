@@ -13,10 +13,9 @@ void main() {
     vec2 uv = v_uv;
 
     vec2 st = gl_FragCoord.xy / resolution.xy - vec2(.5);
-    // vec2 st = gl_FragCoord.xy / resolution.xy;
     st.y *= resolution.y / resolution.x;
 
-    vec2 mouse = vec2((u_mouse.x / u_res.x) * 2. - 1.,-(u_mouse.y / u_res.y) * 2. + 1.) * 0.5;
+    vec2 mouse = vec2((u_mouse.x / u_res.x) * 2. - 1., -(u_mouse.y / u_res.y) * 2. + 1.) * 0.5;
     mouse.y *= resolution.y / resolution.x;
 
     float pct = distance(st, mouse);

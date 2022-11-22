@@ -10,86 +10,77 @@ import vert from './vert.glsl'
 const loader = new THREE.TextureLoader()
 
 if (module.hot) {
-	module.hot.dispose(() => {
-		window.location.reload()
-	})
+    module.hot.dispose(() => {
+        window.location.reload()
+    })
 }
 
 var camera, scene, renderer, composer, renderPass, customPass
 var geometry,
-	material,
-	mesh,
-	texture,
-	u_mouse = new THREE.Vector2(0, 0),
-	u_time = 0
+    material,
+    mesh,
+    texture,
+    u_mouse = new THREE.Vector2(0, 0),
+    u_time = 0
 
 let theimage = document.getElementById('texture')
-texture = loader.load(theimage.src)
 
 init()
 animate()
 
 function init() {
-	console.log(texture)
-	scene = new THREE.Scene()
+    scene = new THREE.Scene()
 
-	// https://codepen.io/trusktr/pen/EbOoNx
-	let perspective = 800
-	let fov = (180 * (2 * Math.atan(innerHeight / 2 / perspective))) / Math.PI
-	camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000)
-	camera.position.set(0, 0, perspective)
+    // https://codepen.io/trusktr/pen/EbOoNx
+    let perspective = 800
+    let fov = (180 * (2 * Math.atan(innerHeight / 2 / perspective))) / Math.PI
+    camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000)
+    camera.position.set(0, 0, perspective)
 
-	geometry = new THREE.PlaneGeometry(500, 333)
-	material = new THREE.MeshBasicMaterial({
-		map: texture,
-	})
-	mesh = new THREE.Mesh(geometry, material)
-	scene.add(mesh)
+    renderer = new THREE.WebGLRenderer({ antialias: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio)
 
-	renderer = new THREE.WebGLRenderer({ antialias: true })
-	renderer.setSize(window.innerWidth, window.innerHeight)
-	renderer.setPixelRatio(window.devicePixelRatio)
-	// renderer.outputEncoding = THREE.sRGBEncoding
-	document.body.appendChild(renderer.domElement)
+    document.body.appendChild(renderer.domElement)
 
-	window.renderer = renderer
+    window.renderer = renderer
 
-	// post processing
-	composer = new EffectComposer(renderer)
-	renderPass = new RenderPass(scene, camera)
-	composer.addPass(renderPass)
+    // post processing
+    composer = new EffectComposer(renderer)
+    renderPass = new RenderPass(scene, camera)
+    composer.addPass(renderPass)
 
-	var myEffect = {
-		uniforms: {
-			tDiffuse: { value: null },
-			u_res: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-			u_mouse: { value: new THREE.Vector2(-10, -10) },
-			u_time: { value: u_time },
-		},
-		vertexShader: vert,
-		fragmentShader: frag,
-		defines: {
-			PR: window.devicePixelRatio.toFixed(1),
-		},
-	}
+    var myEffect = {
+        uniforms: {
+            tDiffuse: { value: null },
+            u_res: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            u_mouse: { value: new THREE.Vector2(-10, -10) },
+            u_time: { value: u_time },
+        },
+        vertexShader: vert,
+        fragmentShader: frag,
+        defines: {
+            PR: window.devicePixelRatio.toFixed(1),
+        },
+    }
 
-	customPass = new ShaderPass(myEffect)
-	customPass.renderToScreen = true
-	composer.addPass(customPass)
+    customPass = new ShaderPass(myEffect)
+    customPass.renderToScreen = true
+    composer.addPass(customPass)
 }
 
 document.addEventListener('mousemove', (e) => {
-	// u_mouse.x = e.clientX / window.innerWidth
-	// u_mouse.y = 1 - e.clientY / window.innerHeight
-	u_mouse.x = e.clientX
-	u_mouse.y = e.clientY
+    u_mouse.x = e.clientX / window.innerWidth
+    u_mouse.y = 1 - e.clientY / window.innerHeight
+    // u_mouse.x = e.clientX
+    // u_mouse.y = e.clientY
 })
 
 function animate() {
-	customPass.uniforms.u_mouse.value = u_mouse
-	// customPass.uniforms.u_time.value++
-	requestAnimationFrame(animate)
+    customPass.uniforms.u_mouse.value = u_mouse
+    // customPass.uniforms.u_time.value++
+    requestAnimationFrame(animate)
 
-	// renderer.render(scene, camera)
-	composer.render()
+    // renderer.render(scene, camera)
+    composer.render()
 }

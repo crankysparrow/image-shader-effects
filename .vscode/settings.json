@@ -1,0 +1,7 @@
+{
+	"editor.formatOnSave": true,
+	"editor.inlayHints.enabled": "offUnlessPressed",
+	"editor.tabSize": 2,
+	"editor.stickyTabStops": true,
+	"editor.stickyScroll.enabled": true
+}
