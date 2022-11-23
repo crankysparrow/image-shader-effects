@@ -8,6 +8,8 @@ script: npm run build
 deploy:
   provider: pages
   github_token: $github_token
+  skip-cleanup: true
   local-dir: /dist
+  target_branch: gh-pages
   on:
     branch: main
