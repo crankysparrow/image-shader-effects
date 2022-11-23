@@ -1,23 +1,22 @@
 {
-    "name": "image-effects-experiments",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
-    "scripts": {
-        "start": "parcel serve 'src/index.html' --no-cache",
-        "build": "parcel build 'src/index.html'"
-    },
-    "author": "",
-    "license": "ISC",
-    "browserslist": "> 0.25%, not dead",
-    "dependencies": {
-        "@parcel/config-default": "^2.8.0",
-        "@parcel/core": "^2.8.0",
-        "@parcel/transformer-glsl": "^2.8.0",
-        "dat.gui": "^0.7.9",
-        "parcel": "^2.8.0",
-        "path-browserify": "^1.0.1",
-        "process": "^0.11.10",
-        "three": "^0.134.0"
-    }
+	"name": "image-effects-experiments",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "rm -rf dist/ && parcel serve 'src/index.html' --no-cache",
+		"build": "parcel build 'src/index.html'"
+	},
+	"author": "",
+	"license": "ISC",
+	"browserslist": "> 0.25%, not dead",
+	"dependencies": {
+		"@parcel/config-default": "^2.8.0",
+		"@parcel/core": "^2.8.0",
+		"@parcel/transformer-glsl": "^2.8.0",
+		"dat.gui": "^0.7.9",
+		"glsl-noise": "^0.0.0",
+		"parcel": "^2.8.0",
+		"three": "^0.134.0"
+	}
 }
