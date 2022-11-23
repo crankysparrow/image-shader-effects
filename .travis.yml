@@ -10,6 +10,6 @@ deploy:
   github-token: $GITHUB_TOKEN
   skip-cleanup: true
   local-dir: dist
-  target_branch: main
+  target_branch: gh_pages
   on:
     branch: main
