@@ -9,7 +9,7 @@ deploy:
   provider: pages
   github-token: $GITHUB_TOKEN
   skip-cleanup: true
-  local-dir: /dist
+  local-dir: dist
   target_branch: main
   on:
     branch: main
