@@ -1,0 +1,9 @@
+language: node_js
+node_js:
+  - 18
+script: npm run start
+deploy:
+  local-dir: /dist
+  provider: pages
+  on:
+    branch: main
