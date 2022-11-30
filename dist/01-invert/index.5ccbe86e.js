@@ -534,155 +534,205 @@ function hmrAcceptRun(bundle, id) {
 },{}],"duzOQ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _three = require("three");
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
-// import * as dat from 'dat.gui'
+var _sceneOrthocam = require("../scene-orthocam");
+var _sceneOrthocamDefault = parcelHelpers.interopDefault(_sceneOrthocam);
 var _vertGlsl = require("./vert.glsl");
 var _vertGlslDefault = parcelHelpers.interopDefault(_vertGlsl);
 var _fragGlsl = require("./frag.glsl");
 var _fragGlslDefault = parcelHelpers.interopDefault(_fragGlsl);
-const scene = new _three.Scene();
 const loader = new _three.TextureLoader();
-const renderer = new _three.WebGLRenderer({});
-// const controls = new OrbitControls(camera, renderer.domElement);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
-const light = new _three.AmbientLight(0xffffff) // soft white light
-;
-scene.add(light);
-// let perspective = 800
-// let fov = (180 * (2 * Math.atan(window.innerHeight / 2 / perspective))) / Math.PI
-// let camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000)
-// camera.position.set(0, 0, 20)
-let orthoCamera = makeOrthoCamera(window.innerWidth, window.innerHeight);
-window.orthoCamera = orthoCamera;
-let uMouse = new _three.Vector2();
-let theimage = document.querySelector("#theimage");
-let image = loader.load(theimage.src, ()=>{
-    let mesh = createMesh(image, uMouse);
-    let rect = theimage.getBoundingClientRect();
-    let width1 = rect.width;
-    let height1 = rect.height;
-    theimage.remove();
-    mesh.scale.set(width1, height1, 1);
-    scene.add(mesh);
-});
-document.onmousemove = function(e) {
-    uMouse.x = e.pageX / window.innerWidth;
-    uMouse.y = e.pageY / window.innerHeight;
-};
-// render loop
-const onAnimationFrameHandler = (timeStamp)=>{
-    // controls.update();
-    renderer.render(scene, orthoCamera);
-    window.requestAnimationFrame(onAnimationFrameHandler);
-};
-window.requestAnimationFrame(onAnimationFrameHandler);
-// resize
-const windowResizeHanlder = ()=>{
-    const { innerHeight , innerWidth  } = window;
-    renderer.setSize(innerWidth, innerHeight);
-    if (orthoCamera) updateOrthoCamera(orthoCamera, innerWidth, innerHeight);
-    else {
-        camera.aspect = innerWidth / innerHeight;
-        camera.updateProjectionMatrix();
+const scene = new (0, _sceneOrthocamDefault.default)();
+const planeGeometry = new _three.PlaneGeometry(1, 1);
+const planeMaterial = new _three.ShaderMaterial({
+    vertexShader: (0, _vertGlslDefault.default),
+    fragmentShader: (0, _fragGlslDefault.default),
+    defines: {
+        PR: window.devicePixelRatio.toFixed(1)
     }
-};
-windowResizeHanlder();
-window.addEventListener("resize", windowResizeHanlder);
-// dom
-document.body.style.margin = 0;
-document.body.appendChild(renderer.domElement);
-function randomImg() {
-    // url for random picture of square size of 256
-    const url_base = "https://picsum.photos/256?random=";
-    // index to access in the picsum as random
-    let index = 128;
-    const img_plane = new Image();
-    img_plane.crossOrigin = "" // ask for CORS permission
-    ;
-    img_plane.src = url_base + index + ".jpg" // get the image!
-    ;
-    // texture variable &activation to update it
-    const texture_plane = new _three.Texture(img_plane);
-    img_plane.onload = ()=>{
-        texture_plane.needsUpdate = true;
-    };
-    // plane to display
-    const geometry_plane = new _three.PlaneGeometry(512, 512, 1);
-    const mesh_plane = new _three.Mesh(geometry_plane, new _three.MeshLambertMaterial({
-        map: texture_plane
-    }));
-    return mesh_plane;
+});
+class Plane {
+    bounds = {};
+    mouseX = -1;
+    mouseY = -1;
+    constructor(el){
+        this.el = el;
+        this.img = el.querySelector("img");
+        this.geometry = planeGeometry;
+        this.material = planeMaterial.clone();
+        this.mesh = new _three.Mesh(this.geometry, this.material);
+        let tex = loader.load(this.img.src);
+        this.setBounds();
+        this.setPos();
+        this.material.uniforms = {
+            u_time: {
+                value: 0
+            },
+            u_image: {
+                type: "t",
+                value: tex
+            },
+            u_amount: {
+                value: 0
+            },
+            u_mouse: {
+                type: "v2",
+                value: new _three.Vector2()
+            },
+            u_res: {
+                type: "v2",
+                value: new _three.Vector2(this.bounds.width, this.bounds.height)
+            }
+        };
+    }
+    setBounds() {
+        const rect = this.img.getBoundingClientRect();
+        this.bounds = {
+            left: rect.left / scene.windowWidth,
+            right: rect.right / scene.windowWidth,
+            width: rect.width,
+            scaleX: rect.width / scene.windowWidth,
+            top: rect.top / scene.windowHeight,
+            bottom: rect.bottom / scene.windowHeight,
+            height: rect.height,
+            scaleY: rect.height / scene.windowHeight
+        };
+    }
+    setPos() {
+        this.mesh.scale.set(this.bounds.scaleX, this.bounds.scaleY);
+        this.mesh.position.x = this.bounds.left + this.bounds.scaleX / 2;
+        this.mesh.position.y = -this.bounds.top - this.bounds.scaleY / 2;
+    }
+    resize() {
+        this.setBounds();
+        this.setPos();
+    }
+    scroll() {
+        this.setBounds();
+        this.setPos();
+    }
+    tick(time, mouseX, mouseY) {
+        this.material.uniforms.u_time.value = time;
+        this.mouseX = lerp(this.mouseX, mouseX, 0.1);
+        this.mouseY = lerp(this.mouseY, mouseY, 0.1);
+        this.material.uniforms.u_mouse.value = [
+            this.mouseX,
+            this.mouseY
+        ];
+    }
 }
-function createMesh(image, uMouse) {
-    let uniforms = {
-        u_image: {
-            type: "t",
-            value: image
-        },
-        u_time: {
-            value: 0
-        },
-        u_res: {
-            value: new _three.Vector2(window.innerWidth, window.innerHeight)
-        },
-        u_mouse: {
-            type: "v2",
-            value: uMouse
-        }
-    };
-    let geometry = new _three.PlaneBufferGeometry(1, 1, 1, 1);
-    let material = new _three.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: (0, _vertGlslDefault.default),
-        fragmentShader: (0, _fragGlslDefault.default),
-        defines: {
-            PR: window.devicePixelRatio.toFixed(1)
-        }
-    });
-    let mesh = new _three.Mesh(geometry, material);
-    return mesh;
+let els = document.querySelectorAll(".plane-wrap");
+window.planes = [];
+function initPlane(el) {
+    let plane = new Plane(el);
+    scene.addPlane(plane);
+    window.planes.push(plane);
 }
-function makeOrthoCamera(width1, height1) {
-    let camera1 = new _three.OrthographicCamera(width1 / -2, width1 / 2, height1 / 2, height1 / -2, 1, 10);
-    camera1.position.set(0, 0, 1);
-    return camera1;
-}
-function updateOrthoCamera(camera1, width1, height1) {
-    camera1.left = width1 / -2;
-    camera1.right = width1 / 2;
-    camera1.top = height1 / 2;
-    camera1.bottom = height1 / -2;
-    camera1.updateProjectionMatrix();
-}
-function cameraGUI() {
-    let gui = new dat.GUI();
-    let camGUI = gui.addFolder("Camera");
-    console.log(camera);
-    camGUI.add(camera, "left", -width, width).onChange(function(val) {
-        camera.left = val;
-        camera.updateProjectionMatrix();
-    });
-    camGUI.add(camera, "right", -width, width).onChange(function(val) {
-        camera.right = val;
-        camera.updateProjectionMatrix();
-    });
-    camGUI.add(camera, "top", -height, height).onChange(function(val) {
-        camera.top = val;
-        camera.updateProjectionMatrix();
-    });
-    camGUI.add(camera, "bottom", -height, height).onChange(function(val) {
-        camera.bottom = val;
-        camera.updateProjectionMatrix();
-    });
-    camGUI.open();
+els.forEach((el)=>{
+    let img = el.querySelector("img");
+    if (img.complete) initPlane(el);
+    else img.addEventListener("load", ()=>initPlane(el));
+});
+function lerp(a, b, t) {
+    return a + (b - a) * t;
 }
 
-},{"three":"ktPTu","./vert.glsl":"gV40a","./frag.glsl":"828tQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gV40a":[function(require,module,exports) {
+},{"three":"ktPTu","../scene-orthocam":"fu2OZ","./vert.glsl":"gV40a","./frag.glsl":"828tQ","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fu2OZ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _three = require("three");
+class Scene {
+    planes = [];
+    mouseX = 0;
+    mouseY = 0;
+    constructor(){
+        let { innerWidth , innerHeight  } = window;
+        this.windowWidth = innerWidth;
+        this.windowHeight = innerHeight;
+        this.scene = new _three.Scene();
+        this.camera = new _three.OrthographicCamera(0, 1, 0, -1);
+        this.camera.position.set(0, 0, 1);
+        this.renderer = new _three.WebGLRenderer({
+            alpha: true,
+            antialias: true
+        });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(innerWidth, innerHeight);
+        this.clock = new _three.Clock();
+        this.addToDom();
+        this.onResize();
+        window.requestAnimationFrame(()=>this.tick());
+        window.addEventListener("resize", ()=>this.onResize());
+        window.addEventListener("scroll", ()=>this.onScroll());
+        window.addEventListener("mousemove", (e)=>this.onMouse(e));
+        window.addEventListener("mousemove", (e)=>this.firstMouseMove(e), {
+            once: true
+        });
+    }
+    firstMouseMove(e) {
+        this.mouseX = e.clientX / this.windowWidth;
+        this.mouseY = e.clientY / this.windowHeight;
+        this.planes.forEach((plane)=>{
+            let xOff = this.mouseX - plane.bounds.left;
+            plane.mouseX = xOff / plane.bounds.scaleX;
+            let yOff = this.mouseY - plane.bounds.top;
+            plane.mouseY = yOff / plane.bounds.scaleY;
+        });
+    }
+    addPlane(plane) {
+        this.scene.add(plane.mesh);
+        this.planes.push(plane);
+    }
+    addToDom() {
+        document.body.appendChild(this.renderer.domElement);
+    }
+    tick() {
+        let time = this.clock.getElapsedTime();
+        this.planes.forEach((plane, i)=>{
+            let xOff = this.mouseX - plane.bounds.left;
+            let planeMouseX = xOff / plane.bounds.scaleX;
+            let yOff = this.mouseY - plane.bounds.top;
+            let planeMouseY = yOff / plane.bounds.scaleY;
+            plane.tick(time, planeMouseX, planeMouseY);
+        // plane.tick(time, 0.5, 0.5)
+        // planeMouseX goes from 0 - 1 left to right over image
+        // planeMouseY goes from 0 - 1 from top to bottom of image
+        });
+        this.renderer.render(this.scene, this.camera);
+        window.requestAnimationFrame(()=>this.tick());
+    }
+    onMouse(e) {
+        this.mouseX = e.clientX / this.windowWidth;
+        this.mouseY = e.clientY / this.windowHeight;
+    }
+    onResize() {
+        let { innerWidth , innerHeight  } = window;
+        this.renderer.setSize(innerWidth, innerHeight);
+        this.camera.updateProjectionMatrix();
+        this.windowWidth = innerWidth;
+        this.windowHeight = innerHeight;
+        this.planes.forEach((plane)=>{
+            plane.resize(innerWidth, innerHeight);
+        });
+    }
+    onScroll() {
+        this.planes.forEach((plane)=>{
+            plane.scroll(this.windowWidth, this.windowHeight);
+        });
+    }
+}
+exports.default = Scene;
+function scale(input, aMin, aMax, bMin, bMax) {
+    return (input - aMin) * (bMax - bMin) / (aMax - aMin) + bMin;
+}
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"gV40a":[function(require,module,exports) {
 module.exports = "#define GLSLIFY 1\nvarying vec2 v_uv;\n\nvoid main() {\n  v_uv = uv;\n\n  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);\n}";
 
 },{}],"828tQ":[function(require,module,exports) {
-module.exports = "#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform float u_mouse;\n\nvarying vec2 v_uv;\n\nvoid main() {\n\n    vec4 image = texture2D(u_image, v_uv);\n    image.rbg = 1.0 - image.rgb;\n    gl_FragColor = image;\n}";
+module.exports = "#define GLSLIFY 1\nuniform vec2 u_res;\nuniform sampler2D u_image;\nuniform vec2 u_mouse;\nuniform float u_time;\n\nvarying vec2 v_uv;\n\nvoid main() {\n    vec2 uv = v_uv;\n    vec2 resolution = u_res * PR;\n\n    vec2 st = uv;\n    vec2 mouse = vec2(u_mouse.x, 1.0 - u_mouse.y);\n    // these make it so the mouse hover can be a circle,\n    // even if the image is not square \n    mouse.x *= resolution.x / resolution.y;\n    st.x *= resolution.x / resolution.y;\n\n    float pct = distance(st, mouse);\n    float offset = smoothstep(0.4, 0.399, pct);\n\n    vec4 image = texture2D(u_image, v_uv);\n    vec4 inverted = vec4(vec3(1.0 - image.rgb), 1.0);\n    vec4 img = mix(image, inverted, offset);\n\n    gl_FragColor = img;\n}";
 
 },{}]},["4YTr7","duzOQ"], "duzOQ", "parcelRequireb594")
 

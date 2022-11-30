@@ -1,10 +1,12 @@
 precision mediump float;
 varying vec2 v_uv;
-uniform vec2 u_mouse;
-uniform vec2 u_res;
+varying float v_wave;
+uniform float u_amount;
+uniform float u_time;
 
 void main() {
     v_uv = uv;
-    // gl_Position = vec4( position, 1.0);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    vec3 pos = position;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 }

@@ -541,26 +541,27 @@ var _fragGlslDefault = parcelHelpers.interopDefault(_fragGlsl);
 var _vertGlsl = require("./vert.glsl");
 var _vertGlslDefault = parcelHelpers.interopDefault(_vertGlsl);
 const loader = new _three.TextureLoader();
-const planeGeometry = new _three.PlaneGeometry(1, 1, 32, 32);
+const planeGeometry = new _three.PlaneGeometry(1, 1);
 const planeMaterial = new _three.ShaderMaterial({
     vertexShader: (0, _vertGlslDefault.default),
-    fragmentShader: (0, _fragGlslDefault.default)
+    fragmentShader: (0, _fragGlslDefault.default),
+    defines: {
+        PR: window.devicePixelRatio.toFixed(1)
+    }
 });
 const scene = new (0, _sceneOrthocamDefault.default)();
 window.scene = scene;
 class Plane {
     bounds = {};
-    progress = 0;
-    animating = false;
-    startTime = false;
-    waveChangeDuration = 0.75;
     constructor(el){
         this.el = el;
-        this.setBounds();
-        this.geometry = new _three.PlaneGeometry(this.bounds.width, this.bounds.height);
+        this.img = el.querySelector("img");
+        this.geometry = planeGeometry;
         this.material = planeMaterial.clone();
-        let img = el.querySelector("img");
-        let tex = loader.load(img.src);
+        this.mesh = new _three.Mesh(this.geometry, this.material);
+        let tex = loader.load(this.img.src);
+        this.setBounds();
+        this.setPos();
         this.material.uniforms = {
             u_time: {
                 value: 0
@@ -575,26 +576,30 @@ class Plane {
             u_mouse: {
                 type: "v2",
                 value: new _three.Vector2()
+            },
+            u_res: {
+                type: "v2",
+                value: new _three.Vector2(this.bounds.width, this.bounds.height)
             }
         };
-        this.mesh = new _three.Mesh(this.geometry, this.material);
-        this.resize();
     }
     setBounds() {
-        const rect = this.el.getBoundingClientRect();
+        const rect = this.img.getBoundingClientRect();
         this.bounds = {
-            top: rect.top,
-            left: rect.left,
-            right: rect.right,
-            bottom: rect.bottom,
+            left: rect.left / scene.windowWidth,
+            right: rect.right / scene.windowWidth,
             width: rect.width,
+            scaleX: rect.width / scene.windowWidth,
+            top: rect.top / scene.windowHeight,
+            bottom: rect.bottom / scene.windowHeight,
             height: rect.height,
-            bottom: rect.bottom
+            scaleY: rect.height / scene.windowHeight
         };
     }
     setPos() {
-        this.mesh.position.x = this.bounds.left + this.bounds.width / 2;
-        this.mesh.position.y = -this.bounds.top - this.bounds.height / 2;
+        this.mesh.scale.set(this.bounds.scaleX, this.bounds.scaleY);
+        this.mesh.position.x = this.bounds.left + this.bounds.scaleX / 2;
+        this.mesh.position.y = -this.bounds.top - this.bounds.scaleY / 2;
     }
     resize() {
         this.setBounds();
@@ -610,17 +615,6 @@ class Plane {
             mouseX,
             mouseY
         ];
-        if (this.animating) {
-            if (!this.startTime) this.startTime = time;
-            let elapsed = time - this.startTime;
-            if (elapsed >= this.waveChangeDuration) {
-                this.animating = false;
-                this.startTime = false;
-            } else {
-                let newVal = scale(elapsed, 0, this.waveChangeDuration, 0, 1);
-                this.material.uniforms.u_amount.value = this.animating === "inc" ? newVal : 1 - newVal;
-            }
-        }
     }
 }
 let els = document.querySelectorAll(".plane-wrap");
@@ -635,28 +629,13 @@ els.forEach((el)=>{
     if (img.complete) initPlane(el);
     else img.addEventListener("load", ()=>initPlane(el));
 });
-function easeInQuart(x) {
-    return x * x * x * x;
-}
-function scale(input, aMin, aMax, bMin, bMax) {
-    return (input - aMin) * (bMax - bMin) / (aMax - aMin) + bMin;
-}
 
-},{"three":"ktPTu","./frag.glsl":"HRfE4","./vert.glsl":"6jCbP","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3","../scene-orthocam":"fu2OZ"}],"HRfE4":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nvarying float v_wave;\nvarying vec2 v_uv;\nuniform sampler2D u_image;\n\nvoid main() {\n    vec2 uv = v_uv;\n    vec4 image = texture2D(u_image, uv);\n    float wave = v_wave;\n\n    float r = texture2D(u_image, vec2(uv.x + wave * 0.25, uv.y + wave * -0.1)).r;\n    float g = texture2D(u_image, uv - wave * 0.).g;\n    float b = texture2D(u_image, vec2(uv.x + wave * -0.15, uv.y + wave * -0.05)).b;\n\n    vec3 texture = vec3(r, g, b);\n    gl_FragColor = vec4(texture, 1.0);\n\n}";
-
-},{}],"6jCbP":[function(require,module,exports) {
-module.exports = "precision mediump float;\n#define GLSLIFY 1\nvarying vec2 v_uv;\nvarying float v_wave;\nuniform float u_amount;\nuniform float u_time;\n\n//\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise(vec3 v)\n  {\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n\nvoid main() {\n    v_uv = uv;\n    vec3 pos = position;\n\n    vec3 noisePos = vec3(pos.x - u_time * 1.2, pos.y + u_time * 0.1, 0.0);\n    float wave = snoise(noisePos) * 1.75 * u_amount;\n\n    pos.z += wave;\n    v_wave = wave * 0.1;\n\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);\n}";
-
-},{}],"fu2OZ":[function(require,module,exports) {
+},{"three":"ktPTu","../scene-orthocam":"fu2OZ","./frag.glsl":"HRfE4","./vert.glsl":"6jCbP","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"fu2OZ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _three = require("three");
 class Scene {
     planes = [];
-    camWidth = 0;
-    camHeight = 0;
-    id = 1;
     mouseX = 0;
     mouseY = 0;
     constructor(){
@@ -664,7 +643,7 @@ class Scene {
         this.windowWidth = innerWidth;
         this.windowHeight = innerHeight;
         this.scene = new _three.Scene();
-        this.camera = new _three.OrthographicCamera(0, innerWidth, 0, -innerHeight);
+        this.camera = new _three.OrthographicCamera(0, 1, 0, -1);
         this.camera.position.set(0, 0, 1);
         this.renderer = new _three.WebGLRenderer({
             alpha: true,
@@ -678,11 +657,24 @@ class Scene {
         window.requestAnimationFrame(()=>this.tick());
         window.addEventListener("resize", ()=>this.onResize());
         window.addEventListener("scroll", ()=>this.onScroll());
+        window.addEventListener("mousemove", (e)=>this.onMouse(e));
+        window.addEventListener("mousemove", (e)=>this.firstMouseMove(e), {
+            once: true
+        });
+    }
+    firstMouseMove(e) {
+        this.mouseX = e.clientX / this.windowWidth;
+        this.mouseY = e.clientY / this.windowHeight;
+        this.planes.forEach((plane)=>{
+            let xOff = this.mouseX - plane.bounds.left;
+            plane.mouseX = xOff / plane.bounds.scaleX;
+            let yOff = this.mouseY - plane.bounds.top;
+            plane.mouseY = yOff / plane.bounds.scaleY;
+        });
     }
     addPlane(plane) {
         this.scene.add(plane.mesh);
         this.planes.push(plane);
-        plane.resize();
     }
     addToDom() {
         document.body.appendChild(this.renderer.domElement);
@@ -690,35 +682,35 @@ class Scene {
     tick() {
         let time = this.clock.getElapsedTime();
         this.planes.forEach((plane, i)=>{
-            let planeMouseX = scale(this.mouseX, 0, this.windowWidth, plane.bounds.left, plane.bounds.right);
-            let planeMouseY = scale(this.mouseY, 0, this.windowHeight, plane.bounds.top, plane.bounds.bottom);
+            let xOff = this.mouseX - plane.bounds.left;
+            let planeMouseX = xOff / plane.bounds.scaleX;
+            let yOff = this.mouseY - plane.bounds.top;
+            let planeMouseY = yOff / plane.bounds.scaleY;
             plane.tick(time, planeMouseX, planeMouseY);
-        // if (i === 0 && time > 3 && time < 3.1) console.log(plane)
+        // plane.tick(time, 0.5, 0.5)
+        // planeMouseX goes from 0 - 1 left to right over image
+        // planeMouseY goes from 0 - 1 from top to bottom of image
         });
         this.renderer.render(this.scene, this.camera);
         window.requestAnimationFrame(()=>this.tick());
     }
-    mouse() {
-        document.addEventListener("mousemove", (e)=>{
-            this.mouseX = e.clientX;
-            this.mouxeY = e.clientY;
-        });
+    onMouse(e) {
+        this.mouseX = e.clientX / this.windowWidth;
+        this.mouseY = e.clientY / this.windowHeight;
     }
     onResize() {
         let { innerWidth , innerHeight  } = window;
         this.renderer.setSize(innerWidth, innerHeight);
-        this.camera.right = innerWidth;
-        this.camera.bottom = -innerHeight;
         this.camera.updateProjectionMatrix();
         this.windowWidth = innerWidth;
         this.windowHeight = innerHeight;
         this.planes.forEach((plane)=>{
-            plane.resize();
+            plane.resize(innerWidth, innerHeight);
         });
     }
     onScroll() {
         this.planes.forEach((plane)=>{
-            plane.scroll();
+            plane.scroll(this.windowWidth, this.windowHeight);
         });
     }
 }
@@ -726,7 +718,16 @@ exports.default = Scene;
 function scale(input, aMin, aMax, bMin, bMax) {
     return (input - aMin) * (bMax - bMin) / (aMax - aMin) + bMin;
 }
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
 
-},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}]},["bkuWd","31Gpx"], "31Gpx", "parcelRequireb594")
+},{"three":"ktPTu","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"HRfE4":[function(require,module,exports) {
+module.exports = "precision mediump float;\n#define GLSLIFY 1\n\nvarying vec2 v_uv;\nuniform sampler2D u_image;\nuniform vec2 u_mouse;\nuniform vec2 u_res;\nuniform float u_time;\n\n//\n// Description : Array and textureless GLSL 2D/3D/4D simplex\n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : ijm\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//\n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise(vec3 v)\n  {\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g_0 = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g_0;\n  vec3 i1 = min( g_0.xyz, l.zxy );\n  vec3 i2 = max( g_0.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289(i);\n  vec4 p = permute( permute( permute(\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1),\n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n\nvoid main() {\n    vec2 uv = v_uv;\n    vec2 resolution = u_res;\n\n    vec2 st = uv;\n    vec2 mouse = vec2(u_mouse.x, 1.0 - u_mouse.y);\n\n    // these make it so the mouse hover can be a circle,\n    // even if the image is not square \n    mouse.y *= resolution.y / resolution.x;\n    st.y *= resolution.y / resolution.x;\n\n    float pct = distance(st, mouse);\n    float pctadjust = smoothstep(0.4, 0.35, pct);\n    // vec2 offset = pixelSize * 10.0 * pctadjust;\n    vec2 offset = vec2(0.02 * pctadjust);\n\n    vec3 noisePos = vec3(st.x - u_time, st.y, 0.0);\n    float wave = snoise(noisePos) * 2.5 * pctadjust;\n\n    float r = texture2D(u_image, uv - offset * wave).r;\n    float g = texture2D(u_image, uv + offset * wave * 0.5).g;\n    float b = texture2D(u_image, uv + offset * wave).b;\n\n    vec4 image = texture2D(u_image, uv);\n\n    gl_FragColor = vec4(r, g, b, 1.0);\n    // gl_FragColor = vec4(st.y, 0.0, 0.0, 1.0);\n\n}";
+
+},{}],"6jCbP":[function(require,module,exports) {
+module.exports = "precision mediump float;\n#define GLSLIFY 1\nvarying vec2 v_uv;\nvarying float v_wave;\nuniform float u_amount;\nuniform float u_time;\n\nvoid main() {\n    v_uv = uv;\n    vec3 pos = position;\n\n    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);\n}";
+
+},{}]},["bkuWd","31Gpx"], "31Gpx", "parcelRequireb594")
 
 //# sourceMappingURL=index.3c661e30.js.map

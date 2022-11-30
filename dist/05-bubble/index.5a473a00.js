@@ -554,7 +554,6 @@ texture = loader.load(theimage.src);
 init();
 animate();
 function init() {
-    console.log(texture);
     scene = new _three.Scene();
     // https://codepen.io/trusktr/pen/EbOoNx
     let perspective = 800;

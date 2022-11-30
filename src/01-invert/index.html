@@ -4,20 +4,52 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Document</title>
+		<link rel="stylesheet" href="../style.css" />
+
 		<style>
-			body {
-				margin: 0;
-				padding: 0;
+			.wrap {
+				width: 100%;
+				height: 100vh;
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				grid-template-rows: 1fr 1fr 1fr 1fr;
+				grid-column-gap: 4%;
+				padding-top: 10vh;
+				padding-bottom: 10vh;
+				padding-left: 10%;
+				padding-right: 10%;
 			}
+
+			.plane-wrap {
+				position: relative;
+				align-self: center;
+			}
+			.plant-wrap:nth-child(1) {
+				grid-row: 1 / 3;
+				grid-column: 1;
+			}
+
+			.plane-wrap:nth-child(2) {
+				grid-row: 2 / 4;
+				grid-column: 2;
+			}
+
 			img {
+				width: auto;
 				max-width: 100%;
-				opacity: 0;
-				position: absolute;
+				max-height: 100%;
 			}
 		</style>
 	</head>
 	<body>
-		<img id="theimage" src="../../imgs/img1.jpg" />
+		<div class="wrap">
+			<div class="plane-wrap">
+				<img src="../../imgs/img1.jpg" />
+			</div>
+			<div class="plane-wrap">
+				<img src="../../imgs/mountains.jpg" />
+			</div>
+		</div>
 
 		<script type="module" src="index.js"></script>
 	</body>

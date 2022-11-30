@@ -29,13 +29,17 @@ init()
 animate()
 
 function init() {
-	console.log(texture)
 	scene = new THREE.Scene()
 
 	// https://codepen.io/trusktr/pen/EbOoNx
 	let perspective = 800
 	let fov = (180 * (2 * Math.atan(innerHeight / 2 / perspective))) / Math.PI
-	camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000)
+	camera = new THREE.PerspectiveCamera(
+		fov,
+		window.innerWidth / window.innerHeight,
+		0.1,
+		1000
+	)
 	camera.position.set(0, 0, perspective)
 
 	geometry = new THREE.PlaneGeometry(500, 333)
@@ -61,7 +65,9 @@ function init() {
 	var myEffect = {
 		uniforms: {
 			tDiffuse: { value: null },
-			u_res: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+			u_res: {
+				value: new THREE.Vector2(window.innerWidth, window.innerHeight),
+			},
 			// resolution: { value: new THREE.Vector2(1, window.innerHeight / window.innerWidth) },
 			u_mouse: { value: new THREE.Vector2(-10, -10) },
 			u_time: { value: 0 },
