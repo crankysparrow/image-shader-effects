@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<style>
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			body {
+				font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+					Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue',
+					sans-serif;
+				-webkit-font-smoothing: antialiased;
+				margin: 0;
+				background-color: #141414;
+			}
+
+			img {
+				max-width: 100%;
+				display: none;
+			}
+
+			canvas {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+			}
+		</style>
+	</head>
+	<body>
+		<img src="../../imgs/img1.jpg" />
+		<img src="../../imgs/mountains.jpg" />
+		<img src="../../imgs/swirl.jpg" />
+
+		<script type="module" src="index.js"></script>
+	</body>
+</html>

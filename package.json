@@ -15,6 +15,7 @@
 		"@parcel/transformer-glsl": "^2.8.0",
 		"dat.gui": "^0.7.9",
 		"glsl-noise": "^0.0.0",
+		"kampos": "^0.7.0",
 		"parcel": "^2.8.0",
 		"three": "^0.134.0"
 	}
