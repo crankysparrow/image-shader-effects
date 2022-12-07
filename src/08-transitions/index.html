@@ -28,20 +28,70 @@
 			}
 
 			canvas {
-				position: fixed;
-				top: 0;
-				left: 0;
+				position: absolute;
 				width: 100%;
 				height: 100%;
-				pointer-events: none;
+				top: 0;
+				left: 0;
+			}
+
+			#slider-container {
+				position: relative;
+				width: 100%;
+				height: 100%;
+				grid-column: 2;
+				grid-row: 1;
+				max-width: 100%;
+			}
+
+			.slider-outer {
+				position: relative;
+				width: 80%;
+				height: 80vh;
+				margin: 10vh auto 0;
+				display: grid;
+				grid-template-columns: 50px 1fr 50px;
+				max-width: 100vw;
+			}
+
+			button {
+				--outer: 50px;
+				--inner: 20px;
+				position: relative;
+				width: var(--outer);
+				height: var(--outer);
+				align-self: center;
+				background: transparent;
+				border: none;
+			}
+
+			button::before {
+				content: '';
+				width: var(--inner);
+				height: var(--inner);
+				border-bottom: 2px solid #eaeaea;
+				border-right: 2px solid #eaeaea;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+			}
+
+			button#slider-next::before {
+				transform: rotate(-45deg);
 			}
 		</style>
 	</head>
 	<body>
 		<img src="../../imgs/img1.jpg" />
 		<img src="../../imgs/mountains.jpg" />
-		<img src="../../imgs/swirl.jpg" />
+		<img src="../../imgs/slides.jpg" />
 
+		<div class="slider-outer">
+			<div id="slider-container"></div>
+			<button id="slider-prev" aria-label="previous image"></button>
+			<button id="slider-next" aria-label="next image"></button>
+		</div>
 		<script type="module" src="index.js"></script>
 	</body>
 </html>
