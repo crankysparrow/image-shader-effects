@@ -12,8 +12,8 @@ export default class Scene {
         this.windowHeight = innerHeight
 
         this.scene = new THREE.Scene()
-        this.camera = new THREE.PerspectiveCamera(10, innerWidth / innerHeight, 0.1, 100)
-        this.camera.position.z = 50
+        this.camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 5)
+        this.camera.position.z = 2
 
         this.renderer = new THREE.WebGLRenderer({
             alpha: true,
