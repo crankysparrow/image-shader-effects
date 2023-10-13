@@ -17,7 +17,6 @@ void main() {
     vec2 mouse = vec2(u_mouse.x, 1.0 - u_mouse.y);
 
     mouse.y *= resolution.y / resolution.x;
-
     st.y *= resolution.y / resolution.x;
 
     float pct = distance(st, mouse);
@@ -30,6 +29,8 @@ void main() {
     float g = texture2D(u_image, uv - wave).g;
     float b = texture2D(u_image, uv + wave).b;
 
-    gl_FragColor = vec4(r,g,b, 1.0);
+    vec3 rgb = vec3(r, g, b);
+
+    gl_FragColor = vec4(rgb, 1.0);
 
 }

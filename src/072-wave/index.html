@@ -66,6 +66,16 @@
 			margin: 100px 0;
 		}
 
+		.img-wrap span {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 150px;
+			height: 150px;
+			background: rgba(255, 255, 255, 0.5);
+		}
+
 		.img-wrap:nth-child(1) {
 			grid-row: 1 / 3;
 			grid-column: 1;
@@ -126,18 +136,25 @@
 	<div class="wrap">
 		<div class="img-wrap">
 			<img id="img1" src="../../imgs/slides.jpg" />
+			<span></span>
 			<h1>01</h1>
 		</div>
 		<div class="img-wrap">
 			<img id="img2" src="../../imgs/mountains.jpg" />
+			<span></span>
+
 			<h1>02</h1>
 		</div>
 		<div class="img-wrap">
 			<img src="../../imgs/purple.jpg" />
+			<span></span>
+
 			<h1>03</h1>
 		</div>
 		<div class="img-wrap">
 			<img src="../../imgs/gum.jpg" />
+			<span></span>
+
 			<h1>04</h1>
 		</div>
 	</div>
