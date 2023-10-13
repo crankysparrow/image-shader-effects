@@ -1,11 +1,10 @@
 import * as THREE from 'three'
-import Scene from './scene'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 import fragmentShader from './frag.glsl'
 import vertexShader from './vert.glsl'
 
 const scenes = []
+
 const clock = new THREE.Clock()
 const loader = new THREE.TextureLoader()
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
@@ -14,14 +13,15 @@ const planeMaterial = new THREE.ShaderMaterial({
     fragmentShader,
 })
 const canvas = document.getElementById('c')
-let views, renderer
+let renderer
 
 init()
+
 function init() {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
 
-    views = document.querySelectorAll('.img-wrap img')
+    let views = document.querySelectorAll('.img-wrap img')
     for (let i = 0; i < views.length; i++) {
         let scene = new THREE.Scene()
         let material = planeMaterial.clone()
@@ -35,14 +35,24 @@ function init() {
         let mesh = new THREE.Mesh(geometry, material)
         scene.add(mesh)
 
-        const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 10)
-        camera.position.z = 1
-        // const controls = new OrbitControls(camera, views[i])
+        const camera = new THREE.PerspectiveCamera(100, 1, 0.1, 1000)
+
+        let clientHeight = views[i].clientHeight
+        let clientWidth = views[i].clientWidth
+        let fov = camera.fov * (Math.PI / 180)
+        let z = clientHeight / 2 / Math.tan(fov / 2)
+
+        camera.position.z = z
+        camera.aspect = clientWidth / clientHeight
+        camera.updateProjectionMatrix()
+
+        scene.userData.animating = false
+        scene.userData.startTime = false
 
         scene.userData.view = views[i]
         scene.userData.geometry = geometry
         scene.userData.material = material
-        // scene.userData.controls = controls
+        scene.userData.mesh = mesh
         scene.userData.camera = camera
 
         scenes.push(scene)
@@ -71,23 +81,29 @@ function render() {
     renderer.setScissorTest(true)
 
     scenes.forEach((scene) => {
-        const rect = scene.userData.view.getBoundingClientRect()
+        const { bottom, top, right, left, width, height } =
+            scene.userData.view.getBoundingClientRect()
         if (
-            rect.bottom < 0 ||
-            rect.top > renderer.domElement.clientHeight ||
-            rect.right < 0 ||
-            rect.left > renderer.domElement.clientWidth
+            bottom < 0 ||
+            top > renderer.domElement.clientHeight ||
+            right < 0 ||
+            left > renderer.domElement.clientWidth
         ) {
             return
         }
 
-        const width = rect.right - rect.left
-        const height = rect.bottom - rect.top
-        const left = rect.left
-        const bottom = renderer.domElement.clientHeight - rect.bottom
+        let time = clock.getElapsedTime()
+        scene.userData.material.uniforms.u_time.value = time
 
-        renderer.setViewport(left, bottom, width, height)
-        renderer.setScissor(left, bottom, width, height)
+        scene.userData.camera.aspect = width / height
+        scene.userData.camera.updateProjectionMatrix()
+        const yUpBottom = renderer.domElement.clientHeight - bottom
+
+        scene.userData.mesh.scale.x = width
+        scene.userData.mesh.scale.y = height
+
+        renderer.setViewport(left, yUpBottom, width, height)
+        renderer.setScissor(left, yUpBottom, width, height)
         renderer.render(scene, scene.userData.camera)
     })
 }
