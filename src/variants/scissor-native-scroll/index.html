@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Wave - Scissor + Native Scroll</title>
+	<style>
+		html.lenis {
+			height: auto;
+		}
+
+		.lenis.lenis-smooth {
+			scroll-behavior: auto;
+		}
+
+		.lenis.lenis-smooth [data-lenis-prevent] {
+			overscroll-behavior: contain;
+		}
+
+		.lenis.lenis-stopped {
+			overflow: hidden;
+		}
+
+		.lenis.lenis-scrolling iframe {
+			pointer-events: none;
+		}
+	</style>
+
+	<link rel="stylesheet" href="../../style.css" />
+</head>
+
+<body>
+	<canvas id="c"></canvas>
+
+	<div class="wrap imgs-nums-wrap">
+		<div class="img-wrap">
+			<img id="img1" src="../../../imgs/slides.jpg" />
+			<h1>01</h1>
+		</div>
+		<div class="img-wrap">
+			<img id="img2" src="../../../imgs/mountains.jpg" />
+			<span></span>
+			<h1>02</h1>
+		</div>
+		<div class="img-wrap">
+			<img src="../../../imgs/purple.jpg" />
+			<h1>03</h1>
+		</div>
+		<div class="img-wrap">
+			<img src="../../../imgs/gum.jpg" />
+			<h1>04</h1>
+		</div>
+	</div>
+
+	<script type="module" src="./rgb-scissor-native-scroll.js"></script>
+</body>
+
+</html>

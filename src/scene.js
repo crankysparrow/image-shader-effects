@@ -25,9 +25,9 @@ export default class Scene {
 
         this.addToDom()
         this.onResize()
-        window.requestAnimationFrame(() => this.tick())
-        window.addEventListener('resize', () => this.onResize())
-        window.addEventListener('scroll', () => this.onScroll())
+        window.requestAnimationFrame(this.tick)
+        window.addEventListener('resize', this.onResize)
+        window.addEventListener('scroll', this.onScroll)
     }
 
     addPlane(plane) {
@@ -40,15 +40,15 @@ export default class Scene {
         document.body.appendChild(this.renderer.domElement)
     }
 
-    tick() {
+    tick = () => {
         let time = this.clock.getElapsedTime()
         this.planes.forEach((plane) => plane.tick(time))
 
         this.renderer.render(this.scene, this.camera)
-        window.requestAnimationFrame(() => this.tick())
+        window.requestAnimationFrame(this.tick)
     }
 
-    onResize() {
+    onResize = () => {
         let { innerWidth, innerHeight } = window
         this.renderer.setSize(innerWidth, innerHeight)
         this.camera.aspect = innerWidth / innerHeight
@@ -68,7 +68,7 @@ export default class Scene {
         })
     }
 
-    onScroll() {
+    onScroll = () => {
         this.planes.forEach((plane) => {
             plane.scroll()
         })

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Wave - Scissor + Native Scroll</title>
+	<style>
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		html.lenis {
+			height: auto;
+		}
+
+		.lenis.lenis-smooth {
+			scroll-behavior: auto;
+		}
+
+		.lenis.lenis-smooth [data-lenis-prevent] {
+			overscroll-behavior: contain;
+		}
+
+		.lenis.lenis-stopped {
+			overflow: hidden;
+		}
+
+		.lenis.lenis-scrolling iframe {
+			pointer-events: none;
+		}
+	</style>
+
+	<style>
+		body.page-bg {
+			background-color: purple;
+		}
+
+		body.borders .img-wrap {
+			outline: 2px solid blue;
+		}
+	</style>
+
+	<link rel="stylesheet" href="../../style.css" />
+	<link rel="stylesheet" href="../../utils/controls/controls.css" />
+</head>
+
+<body>
+	<div id="controls">
+		<div class="controls-btn" data-prop="borders" data-default="off" data-checked="hide border" data-unchecked="show borders"></div>
+		<div class="controls-btn" data-prop="page-bg" data-default="off" data-checked="hide bg color" data-unchecked="show bg color"></div>
+		<div class="controls-btn" data-prop="animate-all" data-default="on" data-manual data-checked="animate on mouse" data-unchecked="animate all"></div>
+	</div>
+	<canvas id="c"></canvas>
+
+	<div class="wrap imgs-nums-wrap">
+		<div class="img-wrap">
+			<img id="img1" src="../../../imgs/slides.jpg" />
+			<h1>01</h1>
+		</div>
+		<div class="img-wrap">
+			<img id="img2" src="../../../imgs/mountains.jpg" />
+			<span></span>
+			<h1>02</h1>
+		</div>
+		<div class="img-wrap">
+			<img src="../../../imgs/purple.jpg" />
+			<h1>03</h1>
+		</div>
+		<div class="img-wrap">
+			<img src="../../../imgs/gum.jpg" />
+			<h1>04</h1>
+		</div>
+	</div>
+
+
+	<script src="../../utils/controls/controls.js"></script>
+	<script type="module" src="./wave-scissor-native-scroll.js"></script>
+</body>
+
+</html>

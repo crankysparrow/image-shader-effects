@@ -1,9 +1,8 @@
 import * as THREE from 'three'
-import { throttle } from '../utils'
-import Lenis from '@studio-freight/lenis'
+import { throttle } from '../../utils'
 
-import fragmentShader from './frag.glsl'
-import vertexShader from './vert.glsl'
+import fragmentShader from '../../shaders/rgb-2d/frag.glsl'
+import vertexShader from '../../shaders/rgb-2d/vert.glsl'
 
 const clock = new THREE.Clock()
 const loader = new THREE.TextureLoader()
@@ -12,6 +11,7 @@ const planeMaterial = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
 })
+
 const canvas = document.getElementById('c')
 
 class ParentView {
@@ -30,10 +30,8 @@ class ParentView {
     }
 
     onMouse = (e) => {
-        let x = e.clientX
-        let y = e.clientY
-        this.mouse.x = x
-        this.mouse.y = y
+        this.mouse.x = e.clientX
+        this.mouse.y = e.clientY
     }
 
     onResize() {
@@ -65,7 +63,7 @@ class ParentView {
         this.renderer.setSize(this.width, this.height)
     }
 
-    render(lenis) {
+    render() {
         this.renderer.setClearColor(0xeeeeee)
         this.renderer.setScissorTest(false)
         this.renderer.clear()
@@ -75,20 +73,15 @@ class ParentView {
 
         let time = clock.getElapsedTime()
 
-        // let scroll = lenis.actualScroll
-        // let scrollHeight = lenis.dimensions.height
-
         this.views.forEach((view) => {
             if (!view.inView) return
 
             const { left, width, height } = view.bounds
-            // let elTop = scroll - view.y
-            // let elBottom = height - elTop
-            // let fromBottom = scrollHeight - elBottom
             let fromBottom = view.fromBottom
 
             view.setMouse(this.mouse.x, this.mouse.y)
             view.setTime(time)
+
             this.renderer.setViewport(left, fromBottom, width, height)
             this.renderer.setScissor(left, fromBottom, width, height)
             this.renderer.render(view.scene, view.camera)
@@ -107,11 +100,10 @@ class View {
         this.y = this.el.offsetTop
         this._effectSize = 150
 
-        this.dataBox = this.el.parentElement.querySelector('.data')
-
         this.scene = new THREE.Scene()
         this.material = planeMaterial.clone()
         this.tex = loader.load(el.src)
+
         this.material.uniforms = {
             u_time: { value: 0 },
             u_radius: { value: this._effectSize / this.bounds.width },
@@ -122,6 +114,7 @@ class View {
                 value: new THREE.Vector2(this.bounds.width, this.bounds.height),
             },
         }
+
         this.mesh = new THREE.Mesh(geometry, this.material)
         this.scene.add(this.mesh)
 
@@ -144,31 +137,11 @@ class View {
         this.mesh.scale.y = this.bounds.height
     }
 
-    getActualScrollTop() {
-        let top = 0
-        let el = this.el
-        do {
-            top += el.offsetTop || 0
-        } while ((el = el.offsetParent))
-
-        this.y = top
-    }
-
     resetBounds(height) {
         this.bounds = this.el.getBoundingClientRect()
         this.material.uniforms.u_res.value.x = this.bounds.width
         this.material.uniforms.u_res.value.y = this.bounds.height
-        this.getActualScrollTop()
         if (height) this.fromBottom = height - this.bounds.bottom
-
-        this.dataBox.innerHTML = `
-            y: ${this.y}<br>
-            height: ${this.bounds.height}<br>
-            top: ${this.bounds.top}<br>
-            bottom: ${this.bounds.bottom}<br>
-            fromBottom: ${this.fromBottom}<br>
-            inView: ${this.inView}<br>
-        `
     }
 
     setInView(width, height) {
@@ -196,28 +169,15 @@ class View {
 }
 
 let parent = new ParentView()
+window.parent = parent
 let els = document.querySelectorAll('.img-wrap img')
-for (let i = 0; i < els.length; i++) {
-    let view = new View(els[i])
+els.forEach((el) => {
+    let view = new View(el)
     parent.addView(view)
-}
+})
 
-let infoBox = document.querySelector('.info-box')
-// const lenis = new Lenis()
-// lenis.on('scroll', (e) => {
-//     infoBox.innerHTML = `actual: ${e.actualScroll}, target: ${e.targetScroll}`
-//     parent.onScroll(lenis)
-// })
-// window.lenis = lenis
-
-// lenis.on('scroll', (e) => {
-//     console.log(e)
-//     parent.onScroll()
-// })
-
-function animate(time) {
+function animate() {
     parent.render()
-    // lenis.raf(time)
     requestAnimationFrame(animate)
 }
 
