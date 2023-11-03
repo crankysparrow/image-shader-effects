@@ -11,6 +11,7 @@ const planeMaterial = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
 })
+
 const canvas = document.getElementById('c')
 
 class ParentView {
@@ -23,16 +24,14 @@ class ParentView {
         this.renderer.setSize(this.width, this.height)
         this.mouse = new THREE.Vector2()
 
-        window.addEventListener('scroll', () => this.onScroll())
+        window.addEventListener('scroll', this.onScroll.bind(this))
         window.addEventListener('resize', () => this.onResize())
         window.addEventListener('mousemove', throttle(this.onMouse, 30))
     }
 
     onMouse = (e) => {
-        let x = e.clientX
-        let y = e.clientY
-        this.mouse.x = x
-        this.mouse.y = y
+        this.mouse.x = e.clientX
+        this.mouse.y = e.clientY
     }
 
     onResize() {
@@ -78,11 +77,13 @@ class ParentView {
             if (!view.inView) return
 
             const { left, width, height } = view.bounds
+            let fromBottom = view.fromBottom
 
             view.setMouse(this.mouse.x, this.mouse.y)
             view.setTime(time)
-            this.renderer.setViewport(left, view.fromBottom, width, height)
-            this.renderer.setScissor(left, view.fromBottom, width, height)
+
+            this.renderer.setViewport(left, fromBottom, width, height)
+            this.renderer.setScissor(left, fromBottom, width, height)
             this.renderer.render(view.scene, view.camera)
         })
     }
@@ -96,11 +97,13 @@ class View {
         this.fromBottom = 0
 
         this.bounds = this.el.getBoundingClientRect()
+        this.y = this.el.offsetTop
         this._effectSize = 150
 
         this.scene = new THREE.Scene()
         this.material = planeMaterial.clone()
         this.tex = loader.load(el.src)
+
         this.material.uniforms = {
             u_time: { value: 0 },
             u_radius: { value: this._effectSize / this.bounds.width },
@@ -111,6 +114,7 @@ class View {
                 value: new THREE.Vector2(this.bounds.width, this.bounds.height),
             },
         }
+
         this.mesh = new THREE.Mesh(geometry, this.material)
         this.scene.add(this.mesh)
 
@@ -165,11 +169,12 @@ class View {
 }
 
 let parent = new ParentView()
+window.parent = parent
 let els = document.querySelectorAll('.img-wrap img')
-for (let i = 0; i < els.length; i++) {
-    let view = new View(els[i])
+els.forEach((el) => {
+    let view = new View(el)
     parent.addView(view)
-}
+})
 
 function animate() {
     parent.render()
@@ -177,5 +182,3 @@ function animate() {
 }
 
 animate()
-
-window.parent = parent
