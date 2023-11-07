@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import Lenis from '@studio-freight/lenis'
 
 import fragmentShader from '../../shaders/bubble/frag.glsl'
 import vertexShader from '../../shaders/bubble/vert.glsl'
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 
 const loader = new THREE.TextureLoader()
 const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
@@ -72,7 +73,7 @@ class Scene {
 
 		this.onResize()
 
-		window.addEventListener('scroll', this.onScroll)
+		// window.addEventListener('scroll', this.onScroll)
 		window.addEventListener('resize', this.onResize)
 		document.body.addEventListener('mousemove', this.onMouse)
 	}
@@ -153,11 +154,6 @@ class Scene {
 	render = () => {
 		if (this.doRender) {
 			this.getMouseSpeed()
-			// info.innerHTML = `mouseSpeed: ${this.mouseSpeed.toFixed(3)} <br>
-			// mouseVel: ${this.mouseVel.toFixed(3)} <br>
-			// mouse: ${this.mouse.x.toFixed(3)}, ${this.mouse.y.toFixed(3)} <br>
-			// followMouse: ${this.followMouse.x.toFixed(3)}, ${this.followMouse.y.toFixed(3)} <br>
-			// `
 			this.customPass.uniforms.u_mouse.value = {
 				x: this.followMouse.x,
 				y: this.followMouse.y,
@@ -235,11 +231,17 @@ class View {
 }
 
 function init() {
+	const lenis = new Lenis()
+
 	const canvas = document.getElementById('c')
 	if (!(canvas instanceof HTMLCanvasElement)) return
 
 	const scene = new Scene(canvas)
 	document.querySelectorAll<HTMLImageElement>('.img-wrap img').forEach((el) => scene.addImage(el))
+
+	lenis.on('scroll', () => {
+		scene.onScroll()
+	})
 
 	const typeSel = document.getElementById('type-sel')
 	if (typeSel instanceof HTMLSelectElement) {
@@ -248,7 +250,8 @@ function init() {
 		})
 	}
 
-	function animate() {
+	function animate(time = 0) {
+		lenis.raf(time)
 		scene.render()
 		requestAnimationFrame(animate)
 	}

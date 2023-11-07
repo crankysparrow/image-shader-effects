@@ -65,7 +65,7 @@ class ParentView {
 		this.renderer.setSize(this.width, this.height)
 	}
 
-	render(lenis) {
+	render() {
 		this.renderer.setClearColor(0x1a1a1a)
 		this.renderer.setScissorTest(false)
 		this.renderer.clear()
@@ -75,21 +75,19 @@ class ParentView {
 
 		let time = clock.getElapsedTime()
 
-		let scroll = lenis.actualScroll
-		let scrollHeight = lenis.dimensions.height
-
 		this.views.forEach((view) => {
 			if (!view.inView) return
 
 			const { left, width, height } = view.bounds
-			let elTop = scroll - view.y
-			let elBottom = height - elTop
-			let fromBottom = scrollHeight - elBottom
+
+			// let elTop = scroll - view.y
+			// let elBottom = height - elTop
+			// let fromBottom = scrollHeight - elBottom
 
 			view.setMouse(this.mouse.x, this.mouse.y)
 			view.setTime(time)
-			this.renderer.setViewport(left, fromBottom, width, height)
-			this.renderer.setScissor(left, fromBottom, width, height)
+			this.renderer.setViewport(left, view.fromBottom, width, height)
+			this.renderer.setScissor(left, view.fromBottom, width, height)
 			this.renderer.render(view.scene, view.camera)
 		})
 	}
@@ -203,8 +201,10 @@ for (let i = 0; i < els.length; i++) {
 
 let infoBox = document.querySelector('.info-box')
 const lenis = new Lenis()
+window.lenis = lenis
 lenis.on('scroll', (e) => {
 	infoBox.innerHTML = `actual: ${e.actualScroll}, target: ${e.targetScroll}`
+	// if (e.targetScroll > 900) lenis.stop()
 	parent.onScroll(lenis)
 })
 
@@ -214,8 +214,8 @@ lenis.on('scroll', (e) => {
 // })
 
 function animate(time) {
-	parent.render(lenis)
 	lenis.raf(time)
+	parent.render()
 	requestAnimationFrame(animate)
 }
 
