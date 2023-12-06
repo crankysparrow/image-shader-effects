@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import Scene from '../scene'
+import Scene from '../utils/scene'
 
 import fragmentShader from './frag.glsl'
 import vertexShader from './vert.glsl'
@@ -71,8 +71,7 @@ class Plane {
 
 	setScale() {
 		this.mesh.scale.x = (scene.camWidth * this.bounds.width) / scene.windowWidth
-		this.mesh.scale.y =
-			(scene.camHeight * this.bounds.height) / scene.windowHeight
+		this.mesh.scale.y = (scene.camHeight * this.bounds.height) / scene.windowHeight
 	}
 
 	resize() {

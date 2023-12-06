@@ -31,8 +31,10 @@ vec4 leftRight(vec2 resolution) {
 vec4 mouseSpotlight(vec2 resolution) {
     vec2 st = gl_FragCoord.xy / resolution.xy;
     // vec2 adjust = vec2(0.0, (resolution.y / resolution.x) * 0.5);
-    // st += adjust;
+    // st += vec2(0.0, (resolution.y / resolution.x) * 0.5);
     // st.y *= resolution.y / resolution.x;
+
+
 
     // vec2 mouse = vec2(u_mouse.x / u_res.x, 1.0 - (u_mouse.y / u_res.y));
     // mouse += adjust;

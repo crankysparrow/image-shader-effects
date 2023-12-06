@@ -245,7 +245,7 @@ function init() {
 
 	const typeSel = document.getElementById('type-sel')
 	if (typeSel instanceof HTMLSelectElement) {
-		typeSel.addEventListener('change', (e) => {
+		typeSel.addEventListener('change', () => {
 			scene.type = parseInt(typeSel.value)
 		})
 	}

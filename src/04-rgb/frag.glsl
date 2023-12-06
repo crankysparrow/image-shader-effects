@@ -6,7 +6,8 @@ uniform vec2 u_mouse;
 uniform vec2 u_res;
 uniform float u_time;
 
-#pragma glslify: noise = require(glsl-noise/simplex/3d)
+// #pragma glslify: noise = require(glsl-noise/simplex/3d)
+#include '../shaders/lygia/generative/snoise.glsl'
 
 void main() {
     vec2 uv = v_uv;
@@ -26,7 +27,7 @@ void main() {
     vec2 offset = vec2(0.02 * pctadjust);
 
     vec3 noisePos = vec3(st.x - u_time, st.y, 0.0);
-    float wave = noise(noisePos) * 2.5 * pctadjust;
+    float wave = snoise(noisePos) * 2.5 * pctadjust;
 
     float r = texture2D(u_image, uv - offset * wave).r;
     float g = texture2D(u_image, uv + offset * wave * 0.5).g;

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import Scene from '../scene-orthocam'
+import Scene from '../utils/scene-orthocam'
 
 import vertexShader from './vert.glsl'
 import fragmentShader from './frag.glsl'

@@ -9,12 +9,6 @@ import vert from './vert.glsl'
 
 const loader = new THREE.TextureLoader()
 
-if (module.hot) {
-	module.hot.dispose(() => {
-		window.location.reload()
-	})
-}
-
 var camera, scene, renderer, composer, renderPass, customPass
 var geometry,
 	material,
@@ -34,12 +28,7 @@ function init() {
 	// https://codepen.io/trusktr/pen/EbOoNx
 	let perspective = 800
 	let fov = (180 * (2 * Math.atan(innerHeight / 2 / perspective))) / Math.PI
-	camera = new THREE.PerspectiveCamera(
-		fov,
-		window.innerWidth / window.innerHeight,
-		0.1,
-		1000
-	)
+	camera = new THREE.PerspectiveCamera(fov, window.innerWidth / window.innerHeight, 0.1, 1000)
 	camera.position.set(0, 0, perspective)
 
 	geometry = new THREE.PlaneGeometry(500, 333)

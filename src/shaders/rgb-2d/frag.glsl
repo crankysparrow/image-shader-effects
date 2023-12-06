@@ -7,7 +7,9 @@ uniform vec2 u_res;
 uniform float u_time;
 uniform float u_radius;
 
-#pragma glslify: noise = require(glsl-noise/simplex/3d)
+// #pragma glslify: noise = require(glsl-noise/simplex/3d)
+#include "../lygia/generative/snoise.glsl"
+
 
 void main() {
     vec2 uv = v_uv;
@@ -23,7 +25,7 @@ void main() {
     float amt = smoothstep(u_radius * 0.5, u_radius * 0.3, pct) * 0.2;
 
     vec3 noisePos = vec3(st.x, st.y, u_time * 0.5);
-    float wave = noise(noisePos) * amt;
+    float wave = snoise(noisePos) * amt;
 
     float r = texture2D(u_image, uv + vec2(wave * 0.5, wave * -0.5)).r;
     float g = texture2D(u_image, uv - wave).g;

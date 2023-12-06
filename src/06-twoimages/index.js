@@ -1,14 +1,7 @@
 import * as THREE from 'three'
-import makeStuff from '../basics/setup.js'
 
 import frag from './frag.glsl'
 import vert from './vert.glsl'
-
-if (module.hot) {
-	module.hot.dispose(() => {
-		window.location.reload()
-	})
-}
 
 const size = 800
 
